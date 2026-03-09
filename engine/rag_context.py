@@ -18,17 +18,18 @@ def build_retriever(k: int = 3):
     return db.as_retriever(search_kwargs={"k": k})
 
 
-def retrieve_context(query: str, k: int = 3, fallback_context: str = ""):
-    """Retrieve relevant docs and merge them into a context string.
-
-    If retrieval returns no docs, fallback_context is returned so the caller can
-    still keep continuity with previously useful context.
-    """
+def retrieve_context(query: str, k: int = 3, fallback_context: str = "", threshold: float = 0.5):
     retriever = build_retriever(k=k)
-    docs = retriever.invoke(query)
 
-    if not docs:
-        return docs, fallback_context
+    docs_and_scores = retriever.vectorstore.similarity_search_with_score(query, k=k)
 
-    context = "\n\n".join(d.page_content for d in docs)
-    return docs, context
+    filtered_docs = []
+    for doc, score in docs_and_scores:
+        if score < threshold:
+            filtered_docs.append(doc)
+
+    if not filtered_docs:
+        return [], fallback_context
+
+    context = "\n\n".join(d.page_content for d in filtered_docs)
+    return filtered_docs, context

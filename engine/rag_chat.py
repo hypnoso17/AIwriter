@@ -1,4 +1,5 @@
 from collections import deque
+from pathlib import Path
 
 from langchain_ollama import ChatOllama
 
@@ -12,6 +13,28 @@ SYSTEM_PROMPT = """你是专业编剧助手。
 
 RECENT_TURNS = 6
 PINNED_NOTES_LIMIT = 20
+
+ROOT = Path(__file__).resolve().parents[1]
+CANON_DIR = ROOT / "data" / "canon"
+WORLD_FILE = CANON_DIR / "world.md"
+CHAR_FILE = CANON_DIR / "characters.md"
+
+
+def load_canon():
+    """加载强制上下文：世界观与人物核心设定。"""
+    world_text = "（未提供 world.md）"
+    char_text = "（未提供 characters.md）"
+
+    if WORLD_FILE.exists():
+        world_text = WORLD_FILE.read_text(encoding="utf-8").strip()
+
+    if CHAR_FILE.exists():
+        char_text = CHAR_FILE.read_text(encoding="utf-8").strip()
+
+    return world_text, char_text
+
+
+WORLD_TEXT, CHARACTER_TEXT = load_canon()
 
 
 def format_recent_dialogue(dialogue_history, max_turns: int = RECENT_TURNS):
@@ -39,6 +62,12 @@ def build_prompt(
     return f"""
 {SYSTEM_PROMPT}
 
+【世界观设定（必须遵守）】
+{WORLD_TEXT}
+
+【人物核心设定（必须遵守）】
+{CHARACTER_TEXT}
+
 【知识库检索上下文】
 {retrieved_context}
 
@@ -51,8 +80,14 @@ def build_prompt(
 【当前用户需求】
 {user_query}
 
-请结合知识库设定、会话固化依据与最近对话，给出连贯且符合设定的回复。
-如果三者冲突：优先以知识库设定为准，其次是会话固化依据，再次是最近对话。
+请结合世界观设定、人物核心设定、知识库检索上下文、会话固化依据与最近对话，给出连贯且符合设定的回复。
+
+如果信息冲突，优先级如下：
+1. 世界观设定
+2. 人物核心设定
+3. 知识库检索上下文
+4. 会话中固化的依据
+5. 最近对话上下文
 """
 
 
@@ -72,6 +107,7 @@ def main():
         if query.lower() in {"exit", "quit"}:
             print("已退出。")
             break
+
         if not query:
             continue
 

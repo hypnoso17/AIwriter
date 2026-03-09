@@ -10,13 +10,18 @@ CHROMA_DIR = ROOT / "data" / "chroma"
 
 def load_docs():
     docs = []
+
     for path in KNOWLEDGE_DIR.rglob("*"):
-        if path.suffix.lower() in [".md", ".txt"]:
+        if path.suffix.lower() in [".md", ".txt"] and "story" in path.name.lower():
             loader = TextLoader(str(path), encoding="utf-8")
             file_docs = loader.load()
+
             for d in file_docs:
                 d.metadata["source"] = path.name
+                d.metadata["type"] = "story"
+            
             docs.extend(file_docs)
+
     return docs
 
 def main():

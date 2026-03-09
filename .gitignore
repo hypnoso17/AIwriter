@@ -1,0 +1,15 @@
+# Data and knowledge directories
+data/
+knowledge/
+
+# Python common ignores
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+env/
+.env
+.flaskenv
+*.sqlite3

@@ -1,6 +1,6 @@
 # Data and knowledge directories
 data/
-knowledge/
+# knowledge/
 
 # Python common ignores
 __pycache__/
